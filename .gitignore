@@ -57,3 +57,10 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+validate-server.cjs
+mcp-publisher
+**/system-metrics.json
+
+# MCP Registry tokens (secrets)
+.mcpregistry_github_token
+.mcpregistry_registry_token
