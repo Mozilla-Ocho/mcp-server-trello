@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,7 +33,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 #v4
         with:
           version: 9
           run_install: false
@@ -48,6 +50,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
+          lookup-only: true
             
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -63,8 +66,10 @@ jobs:
       - name: Update package version (if manual)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version
         run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          npm version ${VERSION} --no-git-tag-version
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        env:
+          VERSION: ${{ github.event.inputs.version }}
           
       - name: Extract version from tag
         if: github.event_name != 'workflow_dispatch'
@@ -89,11 +94,11 @@ jobs:
       - name: Create release artifact
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
         run: |
-          tar -czf mcp-server-trello-${{ env.VERSION }}.tgz build/ package.json README.md LICENSE
+          tar -czf mcp-server-trello-${VERSION}.tgz build/ package.json README.md LICENSE
           
       - name: Upload release artifact
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b #v2
         with:
           files: mcp-server-trello-${{ env.VERSION }}.tgz
         env:
@@ -101,7 +106,7 @@ jobs:
           
       - name: Create GitHub Release (if tag push)
         if: startsWith(github.ref, 'refs/tags/') && github.event_name != 'release'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b #v2
         with:
           files: mcp-server-trello-${{ env.VERSION }}.tgz
           generate_release_notes: true
